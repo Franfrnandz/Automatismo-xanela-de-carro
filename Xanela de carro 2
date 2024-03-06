@@ -1,0 +1,89 @@
+/* 
+ *Imos imitar o funcionamento simplificado dunha xanela dun coche.
+ *
+ *O funcionamento actual da montaxe será: ao premer unha vez,
+ *actívase o motor (relé) que corresponde co estado actual do sistema,
+ *despois o motor permanece activo até que o fin de carreira 
+ *correspondente detecta a chegada do vidro, momento no queo motor
+ *para. En calquera momento intermedio, o pulsador da xanela pode 
+ *parar o vidro (unha pulsación) ou invertir o movemento.
+ *  
+ *  
+ * 
+ *
+ * Autor: Fran Fernández
+ * Data: Marzo de 2024
+ * Actualización:
+*/
+
+//Declaración dos pins de E/S
+const int pinMotores = 0;
+const int pinRele1 = 9;
+const int pinRele2 = 10;
+const int pinFinalCarreraS = 7;
+const int pinFinalCarreraB = 8;
+
+//Variable do estado da entrada
+int estadoMotoresAnterior = LOW;
+
+//Variable para controlar os estados
+int releActivo = 0;
+int estadoMotores = 0;
+int valorPinFinalCarreraS = 0;
+int valorPinFinalCarreraB = 0;
+int direccion = 0;
+
+//Inicio dos pins
+void setup(){
+ pinMode(pinMotores, INPUT);
+ pinMode(pinFinalCarreraS, INPUT);
+ pinMode(pinFinalCarreraB, INPUT);
+  
+ pinMode(pinRele1, OUTPUT);
+ pinMode(pinRele2, OUTPUT);
+}
+
+void loop() {
+ //Leer o estado actual dos finais de carrera
+ valorPinFinalCarreraS = digitalRead(pinFinalCarreraS);
+ valorPinFinalCarreraB = digitalRead(pinFinalCarreraB);
+
+  while(digitalRead(pinMotores)) {
+    estadoMotores = 1;
+  }
+ 
+  if (estadoMotores) { //Detección dunha pulsación
+    estadoMotores = 0; //Reseteo do valor do pulsador
+    if(releActivo) {   
+       direccion = !direccion; //Cambio da dirección
+      
+      //Apaganse os motores
+       digitalWrite(pinRele1, LOW);
+       digitalWrite(pinRele2, LOW);
+      
+       releActivo = 0; //Ventana sen movemento
+    }
+    else {
+      releActivo = 1; //Ventana en movemento
+      
+      if (direccion) { //Se a direccion está a 1
+          digitalWrite(pinRele1, HIGH); //Activase o relé1
+      } else { //Se está a 0
+          digitalWrite(pinRele2, HIGH); //Activase o relé2
+      }
+    }
+  }
+      if (valorPinFinalCarreraS) {
+          direccion = 0; //Cambiase a dirección
+          releActivo = 0;//Non se move a ventana, relés apagados
+          digitalWrite(pinRele1, LOW); //Apagase o motor do relé1
+        }
+      if(valorPinFinalCarreraB) {
+          direccion = 1; //Cambiase a dirección
+          releActivo = 0;//Non se move a ventana
+          digitalWrite(pinRele2, LOW);//Apagase o motor do relé2
+        }
+       delay (10);
+        
+       estadoMotoresAnterior = estadoMotores;
+}
